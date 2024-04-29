@@ -4,6 +4,7 @@ import Modelo.Financiamento;
 import Modelo.Terreno;
 import Modelo.Casa;
 import Modelo.Apartamento;
+import Util.DescontoMaiorDoQueJurosException;
 import Util.InterfaceUser;
 
 import java.util.ArrayList;
@@ -22,30 +23,41 @@ public class Main {
             int opcao = interfaceUser.escolherOpcao(); // Pergunta se deseja usar um financiamento pronto ou simular um novo.
 
             if (opcao == 1) {
-                if (interfaceUser.confirmacaoFinanPronto()) { // Se escolher usar um financiamento pronto.
-                    FinanciamentosProntos(financiamentos, tipoImovel); // Carrega financiamentos prontos.
+                if (interfaceUser.confirmacaoFinanPronto()) {
+                    try {
+                        FinanciamentosProntos(financiamentos, tipoImovel);
+                    } catch (DescontoMaiorDoQueJurosException e) {
+                        System.out.println(e.getMessage());
+                    }
                 } else {
-                    simularNovosFinanciamentos(interfaceUser, financiamentos, tipoImovel); // Simula novos financiamentos.
+                    try {
+                        simularNovosFinanciamentos(interfaceUser, financiamentos, tipoImovel);
+                    } catch (DescontoMaiorDoQueJurosException e) {
+                        System.out.println(e.getMessage());
+                    }
                 }
             } else {
-                simularNovosFinanciamentos(interfaceUser, financiamentos, tipoImovel); // Simula novos financiamentos.
+                try {
+                    simularNovosFinanciamentos(interfaceUser, financiamentos, tipoImovel);
+                } catch (DescontoMaiorDoQueJurosException e) {
+                    System.out.println(e.getMessage());
+                }
             }
 
-            imprimirFinanciamentosIndividuais(financiamentos); // Imprime os financiamentos individuais após cada simulação.
+            imprimirFinanciamentosIndividuais(financiamentos);
 
-            continuar = interfaceUser.perguntarContinuar(); // Pergunta se deseja continuar ou parar.
+            continuar = interfaceUser.perguntarContinuar();
         }
 
-        // Ao final do loop while, imprimimos a soma total dos financiamentos.
         imprimirSomaFinanciamentos(financiamentos);
     }
 
     // Método para adicionar financiamentos prontos à lista.
-    private static void FinanciamentosProntos(List<Financiamento> financiamentos, int tipoImovel) {
+    private static void FinanciamentosProntos(List<Financiamento> financiamentos, int tipoImovel) throws DescontoMaiorDoQueJurosException {
         switch (tipoImovel) {
             case 1:
-                financiamentos.add(new Casa(200000, 20, 5, 60.5, 100.2));
-                financiamentos.add(new Casa(350000, 25, 3, 102.5, 125));
+                financiamentos.add(new Casa(200000, 20, 5, 60.5, 100.2, 0.0));
+                financiamentos.add(new Casa(350000, 25, 3, 102.5, 125, 0.0));
                 break;
             case 2:
                 financiamentos.add(new Terreno(120000, 3, 8, "Zona Rural"));
@@ -59,7 +71,8 @@ public class Main {
     }
 
     // Método para simular novos financiamentos.
-    private static void simularNovosFinanciamentos(InterfaceUser interfaceUser, List<Financiamento> financiamentos, int tipoImovel) {
+    private static void simularNovosFinanciamentos(InterfaceUser interfaceUser, List<Financiamento> financiamentos, int tipoImovel)
+            throws DescontoMaiorDoQueJurosException {
         switch (tipoImovel) {
             case 1:
                 simularFinanciamentoCasa(interfaceUser, financiamentos);
@@ -74,14 +87,15 @@ public class Main {
     }
 
     // Métodos para simular financiamentos de cada tipo de imóvel.
-    private static void simularFinanciamentoCasa(InterfaceUser interfaceUser, List<Financiamento> financiamentos) {
+    private static void simularFinanciamentoCasa(InterfaceUser interfaceUser, List<Financiamento> financiamentos) throws DescontoMaiorDoQueJurosException {
         double valor = interfaceUser.entradaValor();
         int prazoPagamento = interfaceUser.entradaPrazo();
         double taxaJuros = interfaceUser.entradaTaxas();
         double areaContruida = interfaceUser.entradaAreaContruida();
         double areaTerreno = interfaceUser.entradaAreaTerreno();
+        double desconto = interfaceUser.entradaDoDesconto();
 
-        Casa casa = new Casa(valor, prazoPagamento, taxaJuros, areaContruida, areaTerreno);
+        Casa casa = new Casa(valor, prazoPagamento, taxaJuros, areaContruida, areaTerreno, desconto);
         financiamentos.add(casa);
     }
 
@@ -108,7 +122,7 @@ public class Main {
 
     // Métodos para imprimir os financiamentos individuais e a soma total.
     private static void imprimirFinanciamentosIndividuais(List<Financiamento> financiamentos) {
-        System.out.println("Detalhes de cada financiamento\n\n");
+        System.out.println("\n\nDetalhes de cada financiamento\n");
         for (int i = 0; i < financiamentos.size(); i++) {
             Financiamento financiamento = financiamentos.get(i);
             financiamento.setCalcularPagamentoMensal(); // Calcula o pagamento mensal.
@@ -119,21 +133,22 @@ public class Main {
                     System.out.println("Tipo: Casa");
                     System.out.println("Área Construída: " + casa.getAreaConstruida());
                     System.out.println("Área do Terreno: " + casa.getAreaTerreno());
-                    System.out.println("Valor mensal da simulação: " + financiamento.setCalcularPagamentoMensal());
-                    System.out.println("Valor total da simulação: " + financiamento.setCalcularTotalPagamento());
+                    System.out.println("Valor mensal da simulação: " + casa.setCalcularPagamentoMensal());
+                    System.out.println("Valor total da simulação: " + casa.setCalcularTotalPagamento());
+                    System.out.println("Desconto aplicado: " + casa.getDesconto() + "% ao mês");
                 }
                 case Terreno terreno -> {
                     System.out.println("Tipo: Terreno");
                     System.out.println("Tipo de Zona: " + terreno.getTipoZona());
-                    System.out.println("Valor mensal da simulação: " + financiamento.setCalcularPagamentoMensal());
-                    System.out.println("Valor total da simulação: " + financiamento.setCalcularTotalPagamento());
+                    System.out.println("Valor mensal da simulação: " + terreno.setCalcularPagamentoMensal());
+                    System.out.println("Valor total da simulação: " + terreno.setCalcularTotalPagamento());
                 }
                 case Apartamento apartamento -> {
                     System.out.println("Tipo: Apartamento");
                     System.out.println("Vaga de Estacionamento: " + apartamento.getVagaEstacionamento());
                     System.out.println("Número do Andar: " + apartamento.getNumeroAndar());
-                    System.out.println("Valor mensal da simulação: " + financiamento.setCalcularPagamentoMensal());
-                    System.out.println("Valor total da simulação: " + financiamento.setCalcularTotalPagamento());
+                    System.out.println("Valor mensal da simulação: " + apartamento.setCalcularPagamentoMensal());
+                    System.out.println("Valor total da simulação: " + apartamento.setCalcularTotalPagamento());
                 }
                 default -> {
                 }
