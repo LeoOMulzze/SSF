@@ -7,13 +7,17 @@ import Modelo.Apartamento;
 import Util.DescontoMaiorDoQueJurosException;
 import Util.InterfaceUser;
 
+
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class Main {
     public static void main(String[] args) {  // Inicia o código.
         InterfaceUser interfaceUser = new InterfaceUser();
-        List<Financiamento> financiamentos = new ArrayList<>();
+        ArquivoUtil.limparArquivo("ArquivoUtil.txt");
+
+        List<Financiamento> financiamentos = new ArrayList<>(ArquivoUtil.lerFinanciamentos("ArquivoUtil.txt"));
 
         // Loop principal para continuar ou parar as simulações.
         boolean continuar = true;
@@ -50,6 +54,8 @@ public class Main {
         }
 
         imprimirSomaFinanciamentos(financiamentos);
+
+        ArquivoUtil.salvarFinanciamentos(financiamentos);
     }
 
     // Método para adicionar financiamentos prontos à lista.
@@ -125,35 +131,37 @@ public class Main {
         System.out.println("\n\nDetalhes de cada financiamento\n");
         for (int i = 0; i < financiamentos.size(); i++) {
             Financiamento financiamento = financiamentos.get(i);
-            financiamento.setCalcularPagamentoMensal(); // Calcula o pagamento mensal.
-            financiamento.setCalcularTotalPagamento(); // Calcula o total de pagamento.
-            System.out.println("Financiamento " + (i + 1));
-            switch (financiamento) {
-                case Casa casa -> {
-                    System.out.println("Tipo: Casa");
-                    System.out.println("Área Construída: " + casa.getAreaConstruida());
-                    System.out.println("Área do Terreno: " + casa.getAreaTerreno());
-                    System.out.println("Valor mensal da simulação: " + casa.setCalcularPagamentoMensal());
-                    System.out.println("Valor total da simulação: " + casa.setCalcularTotalPagamento());
-                    System.out.println("Desconto aplicado: " + casa.getDesconto() + "% ao mês");
+            if (financiamento != null) { // Verifica se o objeto financiamento não é nulo
+                financiamento.setCalcularPagamentoMensal(); // Calcula o pagamento mensal.
+                financiamento.setCalcularTotalPagamento(); // Calcula o total de pagamento.
+                System.out.println("Financiamento " + (i + 1));
+                switch (financiamento) {
+                    case Casa casa -> {
+                        System.out.println("Tipo: Casa");
+                        System.out.println("Área Construída: " + casa.getAreaConstruida());
+                        System.out.println("Área do Terreno: " + casa.getAreaTerreno());
+                        System.out.println("Valor mensal da simulação: " + casa.setCalcularPagamentoMensal());
+                        System.out.println("Valor total da simulação: " + casa.setCalcularPagamentoMensal());
+                        System.out.println("Desconto aplicado: " + casa.getDesconto() + "% ao mês");
+                    }
+                    case Terreno terreno -> {
+                        System.out.println("Tipo: Terreno");
+                        System.out.println("Tipo de Zona: " + terreno.getTipoZona());
+                        System.out.println("Valor mensal da simulação: " + terreno.setCalcularPagamentoMensal());
+                        System.out.println("Valor total da simulação: " + terreno.setCalcularPagamentoMensal());
+                    }
+                    case Apartamento apartamento -> {
+                        System.out.println("Tipo: Apartamento");
+                        System.out.println("Vaga de Estacionamento: " + apartamento.getVagaEstacionamento());
+                        System.out.println("Número do Andar: " + apartamento.getNumeroAndar());
+                        System.out.println("Valor mensal da simulação: " + apartamento.setCalcularPagamentoMensal());
+                        System.out.println("Valor total da simulação: " + apartamento.setCalcularPagamentoMensal());
+                    }
+                    default ->
+                            System.out.println("Tipo de imóvel não reconhecido: " + financiamento.getClass().getSimpleName());
                 }
-                case Terreno terreno -> {
-                    System.out.println("Tipo: Terreno");
-                    System.out.println("Tipo de Zona: " + terreno.getTipoZona());
-                    System.out.println("Valor mensal da simulação: " + terreno.setCalcularPagamentoMensal());
-                    System.out.println("Valor total da simulação: " + terreno.setCalcularTotalPagamento());
-                }
-                case Apartamento apartamento -> {
-                    System.out.println("Tipo: Apartamento");
-                    System.out.println("Vaga de Estacionamento: " + apartamento.getVagaEstacionamento());
-                    System.out.println("Número do Andar: " + apartamento.getNumeroAndar());
-                    System.out.println("Valor mensal da simulação: " + apartamento.setCalcularPagamentoMensal());
-                    System.out.println("Valor total da simulação: " + apartamento.setCalcularTotalPagamento());
-                }
-                default -> {
-                }
+                System.out.println(financiamento); // Imprime detalhes gerais do financiamento.
             }
-            System.out.println(financiamento); // Imprime detalhes gerais do financiamento.
         }
     }
 
@@ -163,9 +171,13 @@ public class Main {
         System.out.println("\n\nValor de cada financiamento");
         for (int i = 0; i < financiamentos.size(); i++) {
             Financiamento financiamento = financiamentos.get(i);
-            double valorFinanciamento = financiamento.setCalcularTotalPagamento();
-            somaTotal += valorFinanciamento;
-            System.out.println("Financiamento " + (i + 1) + ": " + valorFinanciamento);
+            if (financiamento != null) { // Verifica se o financiamento não é nulo
+                double valorFinanciamento = financiamento.setCalcularTotalPagamento();
+                somaTotal += valorFinanciamento;
+                System.out.println("Financiamento " + (i + 1) + ": " + valorFinanciamento);
+            } else {
+                System.out.println("Financiamento " + (i + 1) + " é nulo.");
+            }
         }
         System.out.println("\nValor total do financiamento:  " + somaTotal);
     }
